@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">AndroSQRL</string>
+    <string name="title_activity_create_identity">Create Identity</string>
+    <string name="title_activity_entropy_camera">Generating Entropy</string>
+    <string name="title_activity_auth">Authenticate</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="action_new_identity">New Identity</string>
+    <string name="action_delete_identity">Delete Identity</string>
+    <string name="action_rename_identity">Rename Identity</string>
+    <string name="action_change_password">Change Password</string>
+    <string name="action_export_identity">Export Identity</string>
+    <string name="action_import_identity">Import Identity</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_about">About</string>
+    <string name="pref_header_notifications">Notifications</string>
+    <string name="pref_title_scanner_beep">Beep on scan</string>
+    <string name="pref_title_scanner_vibrate">Vibrate on scan</string>
+
+</resources>

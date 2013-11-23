@@ -1,0 +1,11 @@
+*.apk
+*.ap_
+*.dex
+*.class
+
+AndroSQRL/bin/
+AndroSQRL/gen/
+AndroSQRL/local.properties
+AndroSQRL/.classpath
+AndroSQRL/.project
+AndroSQRL/.settings/

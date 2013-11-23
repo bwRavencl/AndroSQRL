@@ -1,0 +1,14 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/pref_header_notifications" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_title_scanner_beep"
+            android:title="@string/pref_title_scanner_beep" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_title_scanner_vibrate"
+            android:title="@string/pref_title_scanner_vibrate" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
