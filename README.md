@@ -10,4 +10,4 @@ This Project is loosely based on geier54's POC for an SQRL-Client (https://githu
 ####Build instructions:
 1. git submodule init
 2. git submodule update
-3. Import the AndroSQRL project into Eclipse
+3. Import the AndroSQRL, Android.Ed25519 and CaptureActivity projects into Eclipse
