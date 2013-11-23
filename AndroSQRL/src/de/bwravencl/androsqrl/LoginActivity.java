@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.sqrl.android_sqrl.R;
+import de.bwravencl.androsqrl.R;
 
 import de.bwravencl.androsqrl.model.Identity;
 
@@ -78,8 +78,9 @@ public class LoginActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
+		final MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.login, menu);
+
 		return true;
 	}
 
@@ -102,8 +103,7 @@ public class LoginActivity extends Activity {
 			doChangePasswordStep1();
 			break;
 		case R.id.action_export_identity:
-			Toast.makeText(this, "Not implemented yet!", Toast.LENGTH_SHORT)
-					.show();
+			doExportIdentity();
 			break;
 		case R.id.action_import_identity:
 			Toast.makeText(this, "Not implemented yet!", Toast.LENGTH_SHORT)
@@ -183,8 +183,7 @@ public class LoginActivity extends Activity {
 			Toast.makeText(this, "You entered a wrong password!",
 					Toast.LENGTH_LONG).show();
 		} else {
-			final Intent intentAuth = new Intent(LoginActivity.this,
-					AuthActivity.class);
+			final Intent intentAuth = new Intent(this, AuthActivity.class);
 			final Intent intentLogin = getIntent();
 			final String action = intentLogin.getAction();
 
@@ -529,6 +528,59 @@ public class LoginActivity extends Activity {
 							}
 						});
 		builderNewPassword.show();
+	}
+
+	private void doExportIdentity() {
+		final String name = identityNames.get(spinnerIdentity
+				.getSelectedItemPosition());
+
+		final LayoutInflater factory = LayoutInflater.from(this);
+		final View identityViewExport = factory.inflate(
+				R.layout.alert_dialog_password, null);
+		final EditText editTextPasswordAlert = (EditText) identityViewExport
+				.findViewById(R.id.editTextPasswordAlert);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(
+				"Do you really want to export your identity '" + name
+						+ "'?\n\nPlease enter your password:")
+				.setCancelable(true)
+				.setView(identityViewExport)
+				.setPositiveButton(getString(android.R.string.ok),
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								final String password = editTextPasswordAlert
+										.getText().toString();
+								final Identity identity = loadIdentity(name,
+										password);
+
+								if (identity == null) {
+									Toast.makeText(LoginActivity.this,
+											"You entered a wrong password!",
+											Toast.LENGTH_LONG).show();
+								} else {
+									final Intent intentExportIdentity = new Intent(
+											LoginActivity.this,
+											ExportIdentityActivity.class);
+									intentExportIdentity.putExtra(
+											EXTRA_IDENTITY, identity);
+
+									startActivity(intentExportIdentity);
+								}
+							}
+						})
+				.setNegativeButton(getString(android.R.string.cancel),
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								dialog.dismiss();
+							}
+						});
+		builder.show();
 	}
 
 	private void restartActivity() {

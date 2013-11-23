@@ -5,6 +5,7 @@
     <string name="title_activity_create_identity">Create Identity</string>
     <string name="title_activity_entropy_camera">Generating Entropy</string>
     <string name="title_activity_auth">Authenticate</string>
+    <string name="title_activity_export_identity">Export Identity</string>
     <string name="title_activity_settings">Settings</string>
     <string name="action_new_identity">New Identity</string>
     <string name="action_delete_identity">Delete Identity</string>

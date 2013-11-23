@@ -16,12 +16,12 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 
 import com.github.dazoe.android.Ed25519;
-import com.sqrl.android_sqrl.R;
+import de.bwravencl.androsqrl.R;
 
 import de.bwravencl.androsqrl.model.Identity;
 import de.bwravencl.androsqrl.model.AuthRequest;
-
 import eu.livotov.zxscan.ZXScanHelper;
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;

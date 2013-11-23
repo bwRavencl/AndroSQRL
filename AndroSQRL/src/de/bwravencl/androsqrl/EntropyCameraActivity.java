@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.sqrl.android_sqrl.R;
+import de.bwravencl.androsqrl.R;
 
 import de.bwravencl.androsqrl.utils.Crypto;
 

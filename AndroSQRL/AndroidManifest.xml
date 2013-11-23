@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sqrl.android_sqrl"
+    package="de.bwravencl.androsqrl"
     android:versionCode="1"
     android:versionName="0.1" >
 
@@ -66,6 +66,10 @@
             android:name="de.bwravencl.androsqrl.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="de.bwravencl.androsqrl.ExportIdentityActivity"
+            android:label="@string/title_activity_export_identity" >
         </activity>
     </application>
 

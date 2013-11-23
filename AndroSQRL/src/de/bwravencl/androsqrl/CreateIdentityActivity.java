@@ -1,6 +1,6 @@
 package de.bwravencl.androsqrl;
 
-import com.sqrl.android_sqrl.R;
+import de.bwravencl.androsqrl.R;
 
 import de.bwravencl.androsqrl.model.Identity;
 

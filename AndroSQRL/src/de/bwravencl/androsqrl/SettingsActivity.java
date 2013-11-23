@@ -3,7 +3,7 @@ package de.bwravencl.androsqrl;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 
-import com.sqrl.android_sqrl.R;
+import de.bwravencl.androsqrl.R;
 
 public class SettingsActivity extends PreferenceActivity {
 
