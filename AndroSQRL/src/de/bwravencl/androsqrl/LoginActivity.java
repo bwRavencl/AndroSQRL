@@ -8,12 +8,15 @@ import java.util.List;
 import de.bwravencl.androsqrl.R;
 
 import de.bwravencl.androsqrl.model.Identity;
+import eu.livotov.zxscan.ZXScanHelper;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,6 +38,7 @@ public class LoginActivity extends Activity {
 	public static final String EXTRA_URL = "EXTRA_URL";
 
 	public static final int REQUEST_CREATE_IDENTITY = 1;
+	public static final int REQUEST_SCAN_QR_CODE_FOR_IMPORT = 2;
 
 	private final List<String> identityNames = new ArrayList<String>();
 
@@ -107,8 +111,7 @@ public class LoginActivity extends Activity {
 			doExportIdentity();
 			break;
 		case R.id.action_import_identity:
-			Toast.makeText(this, "Not implemented yet!", Toast.LENGTH_SHORT)
-					.show();
+			doImportIdentityStep1();
 			break;
 		case R.id.action_settings:
 			// Open new activity to change settings
@@ -134,6 +137,11 @@ public class LoginActivity extends Activity {
 				finish();
 			else
 				initSpinner();
+		} else if (requestCode == REQUEST_SCAN_QR_CODE_FOR_IMPORT
+				&& resultCode == RESULT_OK) {
+			final String importString = ZXScanHelper.getScannedCode(data);
+
+			doImportIdentityStep2(importString);
 		}
 	}
 
@@ -584,6 +592,118 @@ public class LoginActivity extends Activity {
 							}
 						});
 		builder.show();
+	}
+
+	private void doImportIdentityStep1() {
+		// Show toast multiple times to increase the duration
+		for (int i = 0; i < 2; i++)
+			Toast.makeText(this,
+					"Please scan an Identity-QR-Code with your camera.",
+					Toast.LENGTH_LONG).show();
+
+		final SharedPreferences sharedPreferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
+
+		ZXScanHelper.setPlaySoundOnRead(sharedPreferences.getBoolean(
+				"pref_title_scanner_beep", true));
+		ZXScanHelper.setVibrateOnRead(sharedPreferences.getBoolean(
+				"pref_title_scanner_vibrate", true));
+
+		ZXScanHelper.scan(this, REQUEST_SCAN_QR_CODE_FOR_IMPORT);
+	}
+
+	private void doImportIdentityStep2(final String importString) {
+		final LayoutInflater factory = LayoutInflater.from(this);
+		final View identityViewName = factory.inflate(
+				R.layout.alert_dialog_name, null);
+		final EditText editTextNameAlert = (EditText) identityViewName
+				.findViewById(R.id.editTextNameAlert);
+		final AlertDialog.Builder builderName = new AlertDialog.Builder(
+				LoginActivity.this);
+		builderName
+				.setMessage("Please enter a name for the imported identity:")
+				.setCancelable(true)
+				.setView(identityViewName)
+				.setPositiveButton(getString(android.R.string.ok),
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								final String name = editTextNameAlert.getText()
+										.toString();
+
+								if (name == null) {
+									final AlertDialog alertDialog = new AlertDialog.Builder(
+											LoginActivity.this).create();
+									alertDialog.setCancelable(false);
+									alertDialog
+											.setMessage("The new name field must not be empty.\n\nPlease provide a valid name.");
+									alertDialog
+											.setButton(
+													AlertDialog.BUTTON_NEUTRAL,
+													getString(android.R.string.ok),
+													new DialogInterface.OnClickListener() {
+														@Override
+														public void onClick(
+																DialogInterface dialog,
+																int which) {
+															doImportIdentityStep2(importString);
+														}
+													});
+									alertDialog.show();
+								} else if (Identity.loadIdentityNames(
+										LoginActivity.this).contains(name)) {
+									final AlertDialog alertDialog = new AlertDialog.Builder(
+											LoginActivity.this).create();
+									alertDialog.setCancelable(false);
+									alertDialog
+											.setMessage("An identity with the same name already exists.\n\nPlease choose a unique name.");
+									alertDialog
+											.setButton(
+													AlertDialog.BUTTON_NEUTRAL,
+													getString(android.R.string.ok),
+													new DialogInterface.OnClickListener() {
+														@Override
+														public void onClick(
+																DialogInterface dialog,
+																int which) {
+															doImportIdentityStep2(importString);
+														}
+													});
+									alertDialog.show();
+								} else {
+									try {
+										final Identity importIdentity = Identity
+												.getIdentityFromString(name,
+														importString);
+										importIdentity.save(LoginActivity.this);
+
+										Toast.makeText(LoginActivity.this,
+												"Identity has been imported!",
+												Toast.LENGTH_LONG).show();
+
+										restartActivity();
+									} catch (Exception e) {
+										e.printStackTrace();
+
+										Toast.makeText(LoginActivity.this,
+												"Error: Import unsucessful!",
+												Toast.LENGTH_LONG).show();
+									}
+								}
+							}
+						})
+				.setNegativeButton(getString(android.R.string.cancel),
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								dialog.dismiss();
+							}
+						});
+		builderName.show();
 	}
 
 	private void restartActivity() {

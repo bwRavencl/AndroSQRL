@@ -132,26 +132,25 @@ public class ExportIdentityActivity extends Activity {
 		}
 	}
 
-	private class ExportTask extends AsyncTask<Object, Void, Identity> {
+	private class ExportTask extends AsyncTask<Object, Void, String> {
 
 		@Override
-		protected Identity doInBackground(Object... params) {
+		protected String doInBackground(Object... params) {
 			final Identity identity = (Identity) params[0];
 			final String password = (String) params[1];
 
-			return identity.getExportIdentity(password);
+			return identity.getExportString(password);
 		}
 
 		@Override
-		protected void onPostExecute(Identity result) {
+		protected void onPostExecute(String result) {
 			final Display display = getWindowManager().getDefaultDisplay();
 			final Point size = new Point();
 			display.getSize(size);
 			final int width = size.x;
 
-			final QRCodeEncoder qrCodeEncoder = new QRCodeEncoder(
-					result.toString(), null, Contents.Type.TEXT,
-					BarcodeFormat.QR_CODE.toString(), width);
+			final QRCodeEncoder qrCodeEncoder = new QRCodeEncoder(result, null,
+					Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), width);
 
 			try {
 				bitmapQRCode = qrCodeEncoder.encodeAsBitmap();

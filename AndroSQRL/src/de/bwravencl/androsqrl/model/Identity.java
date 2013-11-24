@@ -352,7 +352,7 @@ public class Identity implements Parcelable {
 		return loadIdentityNames(context).size();
 	}
 
-	public Identity getExportIdentity(String password) {
+	public String getExportString(String password) {
 		if (deriveMasterKey(password)) {
 			final byte[] salt256 = Crypto.sha256(Crypto.makeRandom(30));
 			final byte[] exportPasswordSalt = Crypto.subByte(salt256, 0, 8);
@@ -369,15 +369,38 @@ public class Identity implements Parcelable {
 
 			final byte[] exportVerifier = Crypto.sha256(exportScryptResult);
 
-			final byte[] exportMasterKey = Crypto.xor(masterkey,
+			final byte[] exportMixKey = Crypto.xor(masterkey,
 					exportScryptResult);
 
-			return new Identity(name, exportMasterKey, exportPasswordSalt,
-					exportVerifier, SCRYPT_EXPORT_PARAMETERS_N,
-					SCRYPT_EXPORT_PARAMETERS_r, SCRYPT_EXPORT_PARAMETERS_p,
-					SCRYPT_EXPORT_PARAMETERS_dkLen);
+			return Base64.encodeToString(exportMixKey, Base64.DEFAULT) + " "
+					+ Base64.encodeToString(exportPasswordSalt, Base64.DEFAULT)
+					+ " "
+					+ Base64.encodeToString(exportVerifier, Base64.DEFAULT)
+					+ " " + SCRYPT_EXPORT_PARAMETERS_N + " "
+					+ SCRYPT_EXPORT_PARAMETERS_r + " "
+					+ SCRYPT_EXPORT_PARAMETERS_p + " "
+					+ SCRYPT_EXPORT_PARAMETERS_dkLen;
 		} else
 			return null;
+	}
+
+	public static Identity getIdentityFromString(String name,
+			String importString) throws Exception {
+		final String[] strings = importString.split(" ");
+
+		if (strings.length != 7)
+			throw new Exception("Invalid String");
+
+		final byte[] mixkey = Base64.decode(strings[0], Base64.DEFAULT);
+		final byte[] salt = Base64.decode(strings[1], Base64.DEFAULT);
+		final byte[] verifier = Base64.decode(strings[2], Base64.DEFAULT);
+		final int scryptParameterN = Integer.parseInt(strings[3]);
+		final int scryptParameterR = Integer.parseInt(strings[4]);
+		final int scryptParameterP = Integer.parseInt(strings[5]);
+		final int scryptParameterDkLen = Integer.parseInt(strings[6]);
+
+		return new Identity(name, mixkey, salt, verifier, scryptParameterN,
+				scryptParameterR, scryptParameterP, scryptParameterDkLen);
 	}
 
 	@Override
