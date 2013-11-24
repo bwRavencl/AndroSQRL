@@ -38,9 +38,24 @@ public class CreateIdentityActivity extends Activity {
 				final String password = editTextPassword.getText().toString();
 				final String confirmPassword = editTextConfirmPassword
 						.getText().toString();
-
-				if (!Identity.loadIdentityNames(CreateIdentityActivity.this)
-						.contains(name)) {
+				if (name == null || name.length() == 0) {
+					final AlertDialog alertDialog = new AlertDialog.Builder(
+							CreateIdentityActivity.this).create();
+					alertDialog.setCancelable(false);
+					alertDialog
+							.setMessage("The name field is empty.\n\nPlease enter a valid name for your identity.");
+					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,
+							getString(android.R.string.ok),
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									dialog.dismiss();
+								}
+							});
+					alertDialog.show();
+				} else if (!Identity.loadIdentityNames(
+						CreateIdentityActivity.this).contains(name)) {
 					if (password.compareTo(confirmPassword) == 0) {
 						if (password != null
 								&& password.length() >= Identity.MIN_PASSWORD_LENGTH) {

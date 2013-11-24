@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -72,10 +73,43 @@ public class LoginActivity extends Activity {
 
 		// Check if an identity is existing
 		if (Identity.getNumIdentities(this) == 0) {
-			// If not open CreateIdentityActitvity
-			Intent intent = new Intent(LoginActivity.this,
-					CreateIdentityActivity.class);
-			startActivityForResult(intent, REQUEST_CREATE_IDENTITY);
+			final LayoutInflater factory = LayoutInflater.from(this);
+			final View identityViewNoIdentity = factory.inflate(
+					R.layout.alert_dialog_no_identity, null);
+			final RadioButton radioButtonCreateIdentity = (RadioButton) identityViewNoIdentity
+					.findViewById(R.id.radioButtonCreateNewIdentity);
+			radioButtonCreateIdentity.setChecked(true);
+			final RadioButton radioButtonImportIdentity = (RadioButton) identityViewNoIdentity
+					.findViewById(R.id.radioButtonImportIdentity);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage(
+					"Welcome!\n\nIn order to use AndroSQRL you either have to create a new identity from scratch or import an existing one from a QR-Code.\n\nPlease select an option:")
+					.setCancelable(true)
+					.setView(identityViewNoIdentity)
+					.setPositiveButton(getString(android.R.string.ok),
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									if (radioButtonCreateIdentity.isChecked())
+										doCreateIdentity();
+									else if (radioButtonImportIdentity
+											.isChecked())
+										doImportIdentityStep1();
+								}
+							})
+					.setNegativeButton(getString(android.R.string.cancel),
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									finish();
+								}
+							});
+			builder.show();
 		}
 
 		initSpinner();
@@ -93,10 +127,7 @@ public class LoginActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_new_identity:
-			// Open new activity to register new user
-			final Intent intentNewIdentity = new Intent(LoginActivity.this,
-					CreateIdentityActivity.class);
-			startActivityForResult(intentNewIdentity, REQUEST_CREATE_IDENTITY);
+			doCreateIdentity();
 			break;
 		case R.id.action_delete_identity:
 			doDeleteIdentity();
@@ -134,14 +165,16 @@ public class LoginActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == REQUEST_CREATE_IDENTITY) {
 			if (Identity.loadIdentityNames(this).size() == 0)
-				finish();
+				restartActivity();
 			else
 				initSpinner();
-		} else if (requestCode == REQUEST_SCAN_QR_CODE_FOR_IMPORT
-				&& resultCode == RESULT_OK) {
-			final String importString = ZXScanHelper.getScannedCode(data);
+		} else if (requestCode == REQUEST_SCAN_QR_CODE_FOR_IMPORT) {
+			if (resultCode == RESULT_OK) {
+				final String importString = ZXScanHelper.getScannedCode(data);
 
-			doImportIdentityStep2(importString);
+				doImportIdentityStep2(importString);
+			} else
+				restartActivity();
 		}
 	}
 
@@ -211,6 +244,12 @@ public class LoginActivity extends Activity {
 
 			startActivity(intentAuth);
 		}
+	}
+
+	private void doCreateIdentity() {
+		final Intent intentNewIdentity = new Intent(LoginActivity.this,
+				CreateIdentityActivity.class);
+		startActivityForResult(intentNewIdentity, REQUEST_CREATE_IDENTITY);
 	}
 
 	private void doDeleteIdentity() {
@@ -344,7 +383,7 @@ public class LoginActivity extends Activity {
 								final String newName = editTextNameAlert
 										.getText().toString();
 
-								if (newName == null) {
+								if (newName == null || newName.length() == 0) {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
 											LoginActivity.this).create();
 									alertDialog.setCancelable(false);
@@ -633,7 +672,7 @@ public class LoginActivity extends Activity {
 								final String name = editTextNameAlert.getText()
 										.toString();
 
-								if (name == null) {
+								if (name == null || name.length() == 0) {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
 											LoginActivity.this).create();
 									alertDialog.setCancelable(false);
@@ -682,8 +721,6 @@ public class LoginActivity extends Activity {
 										Toast.makeText(LoginActivity.this,
 												"Identity has been imported!",
 												Toast.LENGTH_LONG).show();
-
-										restartActivity();
 									} catch (Exception e) {
 										e.printStackTrace();
 
@@ -691,6 +728,7 @@ public class LoginActivity extends Activity {
 												"Error: Import unsucessful!",
 												Toast.LENGTH_LONG).show();
 									}
+									restartActivity();
 								}
 							}
 						})
@@ -700,7 +738,7 @@ public class LoginActivity extends Activity {
 							@Override
 							public void onClick(DialogInterface dialog,
 									int which) {
-								dialog.dismiss();
+								restartActivity();
 							}
 						});
 		builderName.show();

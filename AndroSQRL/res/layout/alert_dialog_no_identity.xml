@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <RadioButton
+        android:id="@+id/radioButtonCreateNewIdentity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:checked="true"
+        android:gravity="top|left"
+        android:text="Create Identity" />
+
+    <RadioButton
+        android:id="@+id/radioButtonImportIdentity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:gravity="top|left"
+        android:text="Import Identity" />
+
+</RadioGroup>
