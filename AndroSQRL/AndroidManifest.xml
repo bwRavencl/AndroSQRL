@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="false"
@@ -55,12 +56,9 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.google.zxing.client.android.CaptureActivity"
-            android:clearTaskOnLaunch="true"
-            android:configChanges="orientation|keyboardHidden"
-            android:stateNotNeeded="true"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-            android:windowSoftInputMode="stateAlwaysHidden" >
+            android:name="de.bwravencl.androsqrl.ExportIdentityActivity"
+            android:label="@string/title_activity_export_identity"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="de.bwravencl.androsqrl.SettingsActivity"
@@ -68,8 +66,12 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="de.bwravencl.androsqrl.ExportIdentityActivity"
-            android:label="@string/title_activity_export_identity" >
+            android:name="com.google.zxing.client.android.CaptureActivity"
+            android:clearTaskOnLaunch="true"
+            android:configChanges="orientation|keyboardHidden"
+            android:stateNotNeeded="true"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:windowSoftInputMode="stateAlwaysHidden" >
         </activity>
     </application>
 

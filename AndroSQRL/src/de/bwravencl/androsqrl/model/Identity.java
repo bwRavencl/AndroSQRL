@@ -37,7 +37,7 @@ public class Identity implements Parcelable {
 	public static final int SCRYPT_NORMAL_PARAMETERS_p = 12;
 	public static final int SCRYPT_NORMAL_PARAMETERS_dkLen = 32;
 
-	public static final int SCRYPT_EXPORT_PARAMETERS_N = 18;
+	public static final int SCRYPT_EXPORT_PARAMETERS_N = 32;
 	public static final int SCRYPT_EXPORT_PARAMETERS_r = 8;
 	public static final int SCRYPT_EXPORT_PARAMETERS_p = 90;
 	public static final int SCRYPT_EXPORT_PARAMETERS_dkLen = SCRYPT_NORMAL_PARAMETERS_dkLen;
@@ -88,8 +88,8 @@ public class Identity implements Parcelable {
 
 	// Constructor used when loading an existing identity from storage
 	public Identity(String name, byte[] mixkey, byte[] salt, byte[] verifier,
-			int iterations, int scryptParameterN, int scryptParameterR,
-			int scryptParameterP, int scryptParameterDkLen) {
+			int scryptParameterN, int scryptParameterR, int scryptParameterP,
+			int scryptParameterDkLen) {
 		this.name = name;
 		this.mixkey = mixkey;
 		this.salt = salt;
@@ -199,8 +199,6 @@ public class Identity implements Parcelable {
 		byte[] verifier = Base64.decode(
 				sharedPreferences.getString(PREFERENCES_IDENTITY_VERIFIER + "_"
 						+ name, null), Base64.DEFAULT);
-		int iterations = sharedPreferences.getInt(
-				PREFERENCES_IDENTITY_ITERATIONS + "_" + name, 0);
 
 		int scryptParameterN = sharedPreferences.getInt(
 				PREFERENCES_IDENTITY_SCRYPT_NORMAL_PARAMETERS_N + "_" + name,
@@ -215,9 +213,8 @@ public class Identity implements Parcelable {
 				PREFERENCES_IDENTITY_SCRYPT_NORMAL_PARAMETERS_dkLen + "_"
 						+ name, SCRYPT_NORMAL_PARAMETERS_dkLen);
 
-		return new Identity(name, mixkey, salt, verifier, iterations,
-				scryptParameterN, scryptParameterR, scryptParameterP,
-				scryptParameterDkLen);
+		return new Identity(name, mixkey, salt, verifier, scryptParameterN,
+				scryptParameterR, scryptParameterP, scryptParameterDkLen);
 
 	}
 
@@ -355,12 +352,32 @@ public class Identity implements Parcelable {
 		return loadIdentityNames(context).size();
 	}
 
-	public void backupToFile() {
+	public Identity getExportIdentity(String password) {
+		if (deriveMasterKey(password)) {
+			final byte[] salt256 = Crypto.sha256(Crypto.makeRandom(30));
+			final byte[] exportPasswordSalt = Crypto.subByte(salt256, 0, 8);
 
-	}
+			byte[] exportScryptResult = {};
+			try {
+				exportScryptResult = SCrypt.scrypt(password.getBytes(),
+						exportPasswordSalt, SCRYPT_EXPORT_PARAMETERS_N,
+						SCRYPT_EXPORT_PARAMETERS_r, SCRYPT_EXPORT_PARAMETERS_p,
+						SCRYPT_EXPORT_PARAMETERS_dkLen);
+			} catch (GeneralSecurityException e) {
+				e.printStackTrace();
+			}
 
-	public void restoreFromFile() {
-		// Load form imported file
+			final byte[] exportVerifier = Crypto.sha256(exportScryptResult);
+
+			final byte[] exportMasterKey = Crypto.xor(masterkey,
+					exportScryptResult);
+
+			return new Identity(name, exportMasterKey, exportPasswordSalt,
+					exportVerifier, SCRYPT_EXPORT_PARAMETERS_N,
+					SCRYPT_EXPORT_PARAMETERS_r, SCRYPT_EXPORT_PARAMETERS_p,
+					SCRYPT_EXPORT_PARAMETERS_dkLen);
+		} else
+			return null;
 	}
 
 	@Override

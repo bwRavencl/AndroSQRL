@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/action_save_to_sdcard"
+        android:icon="@drawable/ic_action_save_to_sdcard"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/action_save_to_sdcard"/>
+    <item
+        android:id="@+id/action_print"
+        android:icon="@drawable/ic_action_print"
+        android:orderInCategory="200"
+        android:showAsAction="always"
+        android:title="@string/action_print"/>
+
+</menu>

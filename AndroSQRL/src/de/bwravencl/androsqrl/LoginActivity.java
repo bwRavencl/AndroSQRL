@@ -31,6 +31,7 @@ import android.widget.Toast;
 public class LoginActivity extends Activity {
 
 	public static final String EXTRA_IDENTITY = "EXTRA_IDENTITY";
+	public static final String EXTRA_PASSWORD = "EXTRA_PASSWORD";
 	public static final String EXTRA_URL = "EXTRA_URL";
 
 	public static final int REQUEST_CREATE_IDENTITY = 1;
@@ -566,6 +567,8 @@ public class LoginActivity extends Activity {
 											ExportIdentityActivity.class);
 									intentExportIdentity.putExtra(
 											EXTRA_IDENTITY, identity);
+									intentExportIdentity.putExtra(
+											EXTRA_PASSWORD, password);
 
 									startActivity(intentExportIdentity);
 								}
