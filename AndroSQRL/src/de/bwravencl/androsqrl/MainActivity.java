@@ -1,5 +1,9 @@
 package de.bwravencl.androsqrl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +19,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
@@ -84,7 +90,9 @@ public class MainActivity extends Activity {
 
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage(
-					"Welcome!\n\nIn order to use AndroSQRL you either have to create a new identity from scratch or import an existing one from a QR-Code.\n\nPlease select an option:")
+					"Welcome!\n\nIn order to use "
+							+ getString(R.string.app_name)
+							+ " you either have to create a new identity from scratch or import an existing one from a QR-Code.\n\nPlease select an option:")
 					.setCancelable(false)
 					.setView(identityViewNoIdentity)
 					.setPositiveButton(getString(android.R.string.ok),
@@ -151,8 +159,7 @@ public class MainActivity extends Activity {
 			startActivity(intentSettings);
 			break;
 		case R.id.action_about:
-			Toast.makeText(this, "Not implemented yet!", Toast.LENGTH_SHORT)
-					.show();
+			doShowAboutDialog();
 			break;
 		default:
 			break;
@@ -225,7 +232,8 @@ public class MainActivity extends Activity {
 			Toast.makeText(this, "You entered a wrong password!",
 					Toast.LENGTH_LONG).show();
 		} else {
-			final Intent intentAuth = new Intent(this, AuthenticateActivity.class);
+			final Intent intentAuth = new Intent(this,
+					AuthenticateActivity.class);
 			final Intent intentLogin = getIntent();
 			final String action = intentLogin.getAction();
 
@@ -529,8 +537,8 @@ public class MainActivity extends Activity {
 										&& newPassword.length() >= Identity.MIN_PASSWORD_LENGTH) {
 									try {
 										identity.changePassword(
-												MainActivity.this,
-												oldPassword, newPassword);
+												MainActivity.this, oldPassword,
+												newPassword);
 
 										Toast.makeText(MainActivity.this,
 												"Password has been changed!",
@@ -739,6 +747,60 @@ public class MainActivity extends Activity {
 							public void onClick(DialogInterface dialog,
 									int which) {
 								restartActivity();
+							}
+						});
+		builderName.show();
+	}
+
+	private void doShowAboutDialog() {
+		String version = "Unknown";
+		try {
+			PackageInfo pInfo = getPackageManager().getPackageInfo(
+					getPackageName(), 0);
+			version = pInfo.versionName;
+		} catch (NameNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		String aboutInfo = "";
+		final InputStream inputStream = getResources().openRawResource(
+				R.raw.about_info);
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				inputStream));
+		String line;
+		try {
+			while ((line = reader.readLine()) != null)
+				aboutInfo += (line + "\n");
+
+			inputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		// Remove trailing newline
+		if (aboutInfo.endsWith("\n"))
+			aboutInfo = aboutInfo.substring(0, aboutInfo.length() - 1);
+
+		final String aboutText = getString(R.string.app_name) + " " + version
+				+ "\n\n" + aboutInfo;
+
+		final LayoutInflater factory = LayoutInflater.from(this);
+		final View viewAbout = factory.inflate(R.layout.alert_dialog_about,
+				null);
+		final TextView textViewAbout = (TextView) viewAbout
+				.findViewById(R.id.textViewAbout);
+		textViewAbout.setText(aboutText);
+		final AlertDialog.Builder builderName = new AlertDialog.Builder(
+				MainActivity.this);
+		builderName
+				.setCancelable(true)
+				.setView(viewAbout)
+				.setNeutralButton("Close",
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								dialog.dismiss();
 							}
 						});
 		builderName.show();

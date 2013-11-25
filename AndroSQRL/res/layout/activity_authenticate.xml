@@ -24,7 +24,6 @@
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/textViewIdentity"
         android:layout_marginTop="15dp"
-        android:text="identity_name"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView

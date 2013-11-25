@@ -1,0 +1,26 @@
+Thank you for using AndroSQRL!
+This software is currently in a highly experimental state and should under no circumstances be used in a production environment!
+
+
+AndroSQRL is licensed under the Apache 2.0 license.
+For full license details please refer to:
+http://www.apache.org/licenses/LICENSE-2.0.html
+
+
+The source code of AndroSQRL is available at:
+https://github.com/bwRavencl/AndroSQRL
+
+
+This software makes use of the following software libraries:
+
+Android.Ed25519:
+https://github.com/dazoe/Android.Ed25519
+
+ZXing:
+https://code.google.com/p/zxing
+
+ZXScanLib:
+https://github.com/LivotovLabs/zxscanlib
+
+scrypt:
+https://github.com/wg/scrypt
