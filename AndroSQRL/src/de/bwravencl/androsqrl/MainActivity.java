@@ -185,6 +185,19 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+
+		final Intent intentLogin = getIntent();
+		final String action = intentLogin.getAction();
+
+		// If we were launched by clicking an URL we want to exit right after
+		// the authentication is complete
+		if (Intent.ACTION_VIEW.equals(action))
+			finish();
+	}
+
 	private void initSpinner() {
 		identityNames.clear();
 
@@ -753,7 +766,7 @@ public class MainActivity extends Activity {
 	}
 
 	private void doShowAboutDialog() {
-		String version = "Unknown";
+		String version = "";
 		try {
 			PackageInfo pInfo = getPackageManager().getPackageInfo(
 					getPackageName(), 0);
