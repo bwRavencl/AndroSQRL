@@ -85,7 +85,7 @@ public class MainActivity extends Activity {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage(
 					"Welcome!\n\nIn order to use AndroSQRL you either have to create a new identity from scratch or import an existing one from a QR-Code.\n\nPlease select an option:")
-					.setCancelable(true)
+					.setCancelable(false)
 					.setView(identityViewNoIdentity)
 					.setPositiveButton(getString(android.R.string.ok),
 							new DialogInterface.OnClickListener() {
