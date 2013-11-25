@@ -32,7 +32,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
-public class LoginActivity extends Activity {
+public class MainActivity extends Activity {
 
 	public static final String EXTRA_IDENTITY = "EXTRA_IDENTITY";
 	public static final String EXTRA_PASSWORD = "EXTRA_PASSWORD";
@@ -118,7 +118,7 @@ public class LoginActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		final MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.login, menu);
+		inflater.inflate(R.menu.main, menu);
 
 		return true;
 	}
@@ -146,7 +146,7 @@ public class LoginActivity extends Activity {
 			break;
 		case R.id.action_settings:
 			// Open new activity to change settings
-			final Intent intentSettings = new Intent(LoginActivity.this,
+			final Intent intentSettings = new Intent(MainActivity.this,
 					SettingsActivity.class);
 			startActivity(intentSettings);
 			break;
@@ -225,7 +225,7 @@ public class LoginActivity extends Activity {
 			Toast.makeText(this, "You entered a wrong password!",
 					Toast.LENGTH_LONG).show();
 		} else {
-			final Intent intentAuth = new Intent(this, AuthActivity.class);
+			final Intent intentAuth = new Intent(this, AuthenticateActivity.class);
 			final Intent intentLogin = getIntent();
 			final String action = intentLogin.getAction();
 
@@ -247,7 +247,7 @@ public class LoginActivity extends Activity {
 	}
 
 	private void doCreateIdentity() {
-		final Intent intentNewIdentity = new Intent(LoginActivity.this,
+		final Intent intentNewIdentity = new Intent(MainActivity.this,
 				CreateIdentityActivity.class);
 		startActivityForResult(intentNewIdentity, REQUEST_CREATE_IDENTITY);
 	}
@@ -280,18 +280,18 @@ public class LoginActivity extends Activity {
 
 								if (identity == null) {
 									Toast.makeText(
-											LoginActivity.this,
+											MainActivity.this,
 											"You entered a wrong password!\nIdentity was not deleted.",
 											Toast.LENGTH_LONG).show();
 								} else {
 									try {
 										Identity.deleteIdentity(
-												LoginActivity.this, name);
+												MainActivity.this, name);
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
 
-									Toast.makeText(LoginActivity.this,
+									Toast.makeText(MainActivity.this,
 											"Identity has been deleted!",
 											Toast.LENGTH_LONG).show();
 
@@ -340,7 +340,7 @@ public class LoginActivity extends Activity {
 										password);
 
 								if (identity == null) {
-									Toast.makeText(LoginActivity.this,
+									Toast.makeText(MainActivity.this,
 											"You entered a wrong password!",
 											Toast.LENGTH_LONG).show();
 								} else {
@@ -367,7 +367,7 @@ public class LoginActivity extends Activity {
 		final EditText editTextNameAlert = (EditText) identityViewName
 				.findViewById(R.id.editTextNameAlert);
 		final AlertDialog.Builder builderName = new AlertDialog.Builder(
-				LoginActivity.this);
+				MainActivity.this);
 		builderName
 				.setMessage(
 						"Please enter a new name for your identity '"
@@ -385,7 +385,7 @@ public class LoginActivity extends Activity {
 
 								if (newName == null || newName.length() == 0) {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
-											LoginActivity.this).create();
+											MainActivity.this).create();
 									alertDialog.setCancelable(false);
 									alertDialog
 											.setMessage("The new name field must not be empty.\n\nPlease provide a valid name.");
@@ -403,9 +403,9 @@ public class LoginActivity extends Activity {
 													});
 									alertDialog.show();
 								} else if (Identity.loadIdentityNames(
-										LoginActivity.this).contains(newName)) {
+										MainActivity.this).contains(newName)) {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
-											LoginActivity.this).create();
+											MainActivity.this).create();
 									alertDialog.setCancelable(false);
 									alertDialog
 											.setMessage("An identity with the same name already exists.\n\nPlease choose a unique name.");
@@ -425,10 +425,10 @@ public class LoginActivity extends Activity {
 								} else {
 									try {
 										Identity.renameIdentity(
-												LoginActivity.this,
+												MainActivity.this,
 												identity.getName(), newName);
 
-										Toast.makeText(LoginActivity.this,
+										Toast.makeText(MainActivity.this,
 												"Identity has been renamed!",
 												Toast.LENGTH_LONG).show();
 
@@ -481,7 +481,7 @@ public class LoginActivity extends Activity {
 										password);
 
 								if (identity == null) {
-									Toast.makeText(LoginActivity.this,
+									Toast.makeText(MainActivity.this,
 											"You entered a wrong password!",
 											Toast.LENGTH_LONG).show();
 								} else {
@@ -509,7 +509,7 @@ public class LoginActivity extends Activity {
 		final EditText editTextNewPasswordAlert = (EditText) identityViewNewPassword
 				.findViewById(R.id.editTextPasswordAlert);
 		final AlertDialog.Builder builderNewPassword = new AlertDialog.Builder(
-				LoginActivity.this);
+				MainActivity.this);
 		builderNewPassword
 				.setMessage(
 						"Please enter a new password for your identity '"
@@ -529,10 +529,10 @@ public class LoginActivity extends Activity {
 										&& newPassword.length() >= Identity.MIN_PASSWORD_LENGTH) {
 									try {
 										identity.changePassword(
-												LoginActivity.this,
+												MainActivity.this,
 												oldPassword, newPassword);
 
-										Toast.makeText(LoginActivity.this,
+										Toast.makeText(MainActivity.this,
 												"Password has been changed!",
 												Toast.LENGTH_LONG).show();
 
@@ -542,7 +542,7 @@ public class LoginActivity extends Activity {
 									}
 								} else {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
-											LoginActivity.this).create();
+											MainActivity.this).create();
 									alertDialog.setCancelable(false);
 									alertDialog
 											.setMessage("The provided password does not comply with the minimum password length requirements.\n\nPlease choose a password with at least "
@@ -605,12 +605,12 @@ public class LoginActivity extends Activity {
 										password);
 
 								if (identity == null) {
-									Toast.makeText(LoginActivity.this,
+									Toast.makeText(MainActivity.this,
 											"You entered a wrong password!",
 											Toast.LENGTH_LONG).show();
 								} else {
 									final Intent intentExportIdentity = new Intent(
-											LoginActivity.this,
+											MainActivity.this,
 											ExportIdentityActivity.class);
 									intentExportIdentity.putExtra(
 											EXTRA_IDENTITY, identity);
@@ -658,7 +658,7 @@ public class LoginActivity extends Activity {
 		final EditText editTextNameAlert = (EditText) identityViewName
 				.findViewById(R.id.editTextNameAlert);
 		final AlertDialog.Builder builderName = new AlertDialog.Builder(
-				LoginActivity.this);
+				MainActivity.this);
 		builderName
 				.setMessage("Please enter a name for the imported identity:")
 				.setCancelable(true)
@@ -674,7 +674,7 @@ public class LoginActivity extends Activity {
 
 								if (name == null || name.length() == 0) {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
-											LoginActivity.this).create();
+											MainActivity.this).create();
 									alertDialog.setCancelable(false);
 									alertDialog
 											.setMessage("The new name field must not be empty.\n\nPlease provide a valid name.");
@@ -692,9 +692,9 @@ public class LoginActivity extends Activity {
 													});
 									alertDialog.show();
 								} else if (Identity.loadIdentityNames(
-										LoginActivity.this).contains(name)) {
+										MainActivity.this).contains(name)) {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
-											LoginActivity.this).create();
+											MainActivity.this).create();
 									alertDialog.setCancelable(false);
 									alertDialog
 											.setMessage("An identity with the same name already exists.\n\nPlease choose a unique name.");
@@ -716,15 +716,15 @@ public class LoginActivity extends Activity {
 										final Identity importIdentity = Identity
 												.getIdentityFromString(name,
 														importString);
-										importIdentity.save(LoginActivity.this);
+										importIdentity.save(MainActivity.this);
 
-										Toast.makeText(LoginActivity.this,
+										Toast.makeText(MainActivity.this,
 												"Identity has been imported!",
 												Toast.LENGTH_LONG).show();
 									} catch (Exception e) {
 										e.printStackTrace();
 
-										Toast.makeText(LoginActivity.this,
+										Toast.makeText(MainActivity.this,
 												"Error: Import unsucessful!",
 												Toast.LENGTH_LONG).show();
 									}

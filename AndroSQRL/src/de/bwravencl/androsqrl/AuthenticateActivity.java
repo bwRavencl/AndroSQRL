@@ -41,7 +41,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-public class AuthActivity extends Activity {
+public class AuthenticateActivity extends Activity {
 
 	public static final int REQUEST_SCAN_QR_CODE = 1;
 
@@ -63,8 +63,8 @@ public class AuthActivity extends Activity {
 		setContentView(R.layout.activity_auth);
 
 		identity = (Identity) getIntent().getParcelableExtra(
-				LoginActivity.EXTRA_IDENTITY);
-		url = getIntent().getStringExtra(LoginActivity.EXTRA_URL);
+				MainActivity.EXTRA_IDENTITY);
+		url = getIntent().getStringExtra(MainActivity.EXTRA_URL);
 
 		textViewIdentityName = (TextView) findViewById(R.id.textViewIdentityName);
 		textViewIdentityName.setText(identity.getName());

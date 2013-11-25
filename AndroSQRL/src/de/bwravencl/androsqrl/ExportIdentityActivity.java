@@ -46,9 +46,9 @@ public class ExportIdentityActivity extends Activity {
 		setContentView(R.layout.activity_export_identity);
 
 		identity = (Identity) getIntent().getParcelableExtra(
-				LoginActivity.EXTRA_IDENTITY);
+				MainActivity.EXTRA_IDENTITY);
 		final String password = (String) getIntent().getStringExtra(
-				LoginActivity.EXTRA_PASSWORD);
+				MainActivity.EXTRA_PASSWORD);
 
 		textView = (TextView) findViewById(R.id.textView);
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
