@@ -60,7 +60,7 @@ public class AuthenticateActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_auth);
+		setContentView(R.layout.activity_authenticate);
 
 		identity = (Identity) getIntent().getParcelableExtra(
 				MainActivity.EXTRA_IDENTITY);
