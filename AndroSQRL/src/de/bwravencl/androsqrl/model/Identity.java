@@ -73,7 +73,7 @@ public class Identity implements Parcelable {
 	public Identity(String name, String password, byte[] extraEntropyBytes) {
 		this.name = name;
 
-		mixkey = Crypto.sha256(Crypto.ByteConcat(Crypto.makeRandom(30),
+		mixkey = Crypto.sha256(Crypto.concatBytes(Crypto.makeRandom(30),
 				extraEntropyBytes));
 		final byte[] salt256 = Crypto.sha256(Crypto.makeRandom(30));
 		salt = Crypto.subByte(salt256, 0, 8);
@@ -147,6 +147,12 @@ public class Identity implements Parcelable {
 		return true;
 	}
 
+	// Zero the masterkey so it does not reside in memory
+	public void clearMasterKey() {
+		if (masterkey != null)
+			Crypto.zeroByte(masterkey);
+	}
+
 	public void changePassword(Context context, String oldPassword,
 			String newPassword) throws GeneralSecurityException {
 		if (oldPassword == null || oldPassword.length() == 0
@@ -164,6 +170,7 @@ public class Identity implements Parcelable {
 			verifier = Crypto.sha256(newScryptResult);
 
 			mixkey = Crypto.xor(masterkey, newScryptResult);
+			clearMasterKey();
 
 			final SharedPreferences sharedPreferences = getSharedPreferences(context);
 			final Editor editor = sharedPreferences.edit();
@@ -373,6 +380,7 @@ public class Identity implements Parcelable {
 
 			final byte[] exportMixKey = Crypto.xor(masterkey,
 					exportScryptResult);
+			clearMasterKey();
 
 			return Base64.encodeToString(exportMixKey, Base64.DEFAULT) + " "
 					+ Base64.encodeToString(exportPasswordSalt, Base64.DEFAULT)
@@ -397,19 +405,22 @@ public class Identity implements Parcelable {
 
 		final byte[] importedMixKey = Base64.decode(strings[0], Base64.DEFAULT);
 		final byte[] importedSalt = Base64.decode(strings[1], Base64.DEFAULT);
-		final byte[] importedVerifier = Base64.decode(strings[2], Base64.DEFAULT);
+		final byte[] importedVerifier = Base64.decode(strings[2],
+				Base64.DEFAULT);
 		final int importedScryptParameterN = Integer.parseInt(strings[3]);
 		final int importedScryptParameterR = Integer.parseInt(strings[4]);
 		final int importedScryptParameterP = Integer.parseInt(strings[5]);
 		final int importedScryptParameterDkLen = Integer.parseInt(strings[6]);
 
 		// Some more simple validity checks
-		if (importedMixKey == null || importedSalt == null || importedVerifier == null
+		if (importedMixKey == null || importedSalt == null
+				|| importedVerifier == null
 				|| importedScryptParameterN % 2 != 0)
 			throw new InvalidImportString(importString);
 
-		final Identity importedIdentity = new Identity(name, importedMixKey, importedSalt,
-				importedVerifier, importedScryptParameterN, importedScryptParameterR, importedScryptParameterP,
+		final Identity importedIdentity = new Identity(name, importedMixKey,
+				importedSalt, importedVerifier, importedScryptParameterN,
+				importedScryptParameterR, importedScryptParameterP,
 				importedScryptParameterDkLen);
 
 		if (!importedIdentity.deriveMasterKey(password))
@@ -433,11 +444,11 @@ public class Identity implements Parcelable {
 
 		final byte[] newMixKey = Crypto.xor(importedIdentity.getMasterkey(),
 				newScryptResult);
+		importedIdentity.clearMasterKey();
 
-		return new Identity(name, newMixKey, newPasswordSalt,
-				newVerifier, SCRYPT_NORMAL_PARAMETERS_N,
-				SCRYPT_NORMAL_PARAMETERS_r, SCRYPT_NORMAL_PARAMETERS_p,
-				SCRYPT_NORMAL_PARAMETERS_dkLen);
+		return new Identity(name, newMixKey, newPasswordSalt, newVerifier,
+				SCRYPT_NORMAL_PARAMETERS_N, SCRYPT_NORMAL_PARAMETERS_r,
+				SCRYPT_NORMAL_PARAMETERS_p, SCRYPT_NORMAL_PARAMETERS_dkLen);
 	}
 
 	@Override

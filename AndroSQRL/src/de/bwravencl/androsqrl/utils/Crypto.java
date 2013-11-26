@@ -52,11 +52,18 @@ public class Crypto {
 	}
 
 	// concatenate two byte arrays
-	public static byte[] ByteConcat(byte[] a, byte[] b) {
+	public static byte[] concatBytes(byte[] a, byte[] b) {
 		final byte[] c = new byte[a.length + b.length];
 		System.arraycopy(a, 0, c, 0, a.length);
 		System.arraycopy(b, 0, c, a.length, b.length);
 
 		return c;
+	}
+
+	// zeros a byte array
+	public static void zeroByte(byte[] a) {
+		for (int i = a.length - 1; i >= 0; --i) {
+			a[i] = 0;
+		}
 	}
 }

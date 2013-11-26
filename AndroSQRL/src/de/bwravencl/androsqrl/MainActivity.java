@@ -529,9 +529,11 @@ public class MainActivity extends Activity {
 			final String oldPassword) {
 		final LayoutInflater factory = LayoutInflater.from(this);
 		final View identityViewNewPassword = factory.inflate(
-				R.layout.alert_dialog_password, null);
-		final EditText editTextNewPasswordAlert = (EditText) identityViewNewPassword
+				R.layout.alert_dialog_change_password, null);
+		final EditText editTextPasswordAlert = (EditText) identityViewNewPassword
 				.findViewById(R.id.editTextPasswordAlert);
+		final EditText editTextConfirmPasswordAlert = (EditText) identityViewNewPassword
+				.findViewById(R.id.editTextConfirmPasswordAlert);
 		final AlertDialog.Builder builderNewPassword = new AlertDialog.Builder(
 				MainActivity.this);
 		builderNewPassword
@@ -546,25 +548,13 @@ public class MainActivity extends Activity {
 							@Override
 							public void onClick(DialogInterface dialog,
 									int which) {
-								final String newPassword = editTextNewPasswordAlert
+								final String newPassword = editTextPasswordAlert
+										.getText().toString();
+								final String confirmPassword = editTextConfirmPasswordAlert
 										.getText().toString();
 
-								if (newPassword != null
-										&& newPassword.length() >= Identity.MIN_PASSWORD_LENGTH) {
-									try {
-										identity.changePassword(
-												MainActivity.this, oldPassword,
-												newPassword);
-
-										Toast.makeText(MainActivity.this,
-												"Password has been changed!",
-												Toast.LENGTH_LONG).show();
-
-										restartActivity();
-									} catch (GeneralSecurityException e) {
-										e.printStackTrace();
-									}
-								} else {
+								if (newPassword == null
+										|| newPassword.length() < Identity.MIN_PASSWORD_LENGTH) {
 									final AlertDialog alertDialog = new AlertDialog.Builder(
 											MainActivity.this).create();
 									alertDialog.setCancelable(false);
@@ -587,6 +577,41 @@ public class MainActivity extends Activity {
 														}
 													});
 									alertDialog.show();
+								} else if (!newPassword.equals(confirmPassword)) {
+									final AlertDialog alertDialog = new AlertDialog.Builder(
+											MainActivity.this).create();
+									alertDialog.setCancelable(false);
+									alertDialog
+											.setMessage("The provided passwords do not match.\n\nPlease make sure that the retyped password matches the actual password.");
+									alertDialog
+											.setButton(
+													AlertDialog.BUTTON_NEUTRAL,
+													getString(android.R.string.ok),
+													new DialogInterface.OnClickListener() {
+														@Override
+														public void onClick(
+																DialogInterface dialog,
+																int which) {
+															doChangePasswordStep2(
+																	identity,
+																	oldPassword);
+														}
+													});
+									alertDialog.show();
+								} else {
+									try {
+										identity.changePassword(
+												MainActivity.this, oldPassword,
+												newPassword);
+
+										Toast.makeText(MainActivity.this,
+												"Password has been changed!",
+												Toast.LENGTH_LONG).show();
+
+										restartActivity();
+									} catch (GeneralSecurityException e) {
+										e.printStackTrace();
+									}
 								}
 							}
 						})

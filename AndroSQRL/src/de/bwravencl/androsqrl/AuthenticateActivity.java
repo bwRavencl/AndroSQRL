@@ -99,6 +99,12 @@ public class AuthenticateActivity extends Activity {
 		}
 	}
 
+	@Override
+	public void finish() {
+		super.finish();
+		identity.clearMasterKey();
+	}
+
 	private void startFinishingTimer(long duration) {
 		// Show toast multiple times to increase the duration
 		for (int i = 0; i < 2; i++)
@@ -223,13 +229,15 @@ public class AuthenticateActivity extends Activity {
 					// See if the page returned "Verified"
 					if (out.contains("Verified")) {
 						textViewMessage.setText("Authentication successful!");
-						textViewMessage.setTextColor(Color.GREEN);
+						textViewMessage.setTextColor(getResources().getColor(
+								R.color.DKGREEN));
 						startFinishingTimer(10000L);
 					} else {
 						textViewMessage
 								.setText("Authentication unsuccessful!\n\nDetails:\n\n"
 										+ out);
-						textViewMessage.setTextColor(Color.RED);
+						textViewMessage.setTextColor(getResources().getColor(
+								R.color.DKRED));
 					}
 				} else {
 					textViewMessage

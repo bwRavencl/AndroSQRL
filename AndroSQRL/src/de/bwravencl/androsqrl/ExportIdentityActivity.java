@@ -88,6 +88,12 @@ public class ExportIdentityActivity extends Activity {
 
 		return true;
 	}
+	
+	@Override
+	public void finish() {
+		super.finish();
+		identity.clearMasterKey();
+	}
 
 	private void doSaveToSDCard() {
 		if (bitmapQRCode != null) {
