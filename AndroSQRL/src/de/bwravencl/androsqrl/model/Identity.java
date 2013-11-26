@@ -411,15 +411,20 @@ public class Identity implements Parcelable {
 		final Identity exportedIdentity = new Identity(name, mixkey, salt,
 				verifier, scryptParameterN, scryptParameterR, scryptParameterP,
 				scryptParameterDkLen);
+
 		if (!exportedIdentity.deriveMasterKey(password))
 			throw new WrongPasswordException();
 
 		// Convert from export to normal scrypt parameters:
+		final byte[] salt256 = Crypto.sha256(Crypto.makeRandom(30));
+		final byte[] importPasswordSalt = Crypto.subByte(salt256, 0, 8);
+
 		byte[] importScryptResult = {};
 		try {
-			importScryptResult = SCrypt.scrypt(password.getBytes(), salt,
-					SCRYPT_NORMAL_PARAMETERS_N, SCRYPT_NORMAL_PARAMETERS_r,
-					SCRYPT_NORMAL_PARAMETERS_p, SCRYPT_NORMAL_PARAMETERS_dkLen);
+			importScryptResult = SCrypt.scrypt(password.getBytes(),
+					importPasswordSalt, SCRYPT_NORMAL_PARAMETERS_N,
+					SCRYPT_NORMAL_PARAMETERS_r, SCRYPT_NORMAL_PARAMETERS_p,
+					SCRYPT_NORMAL_PARAMETERS_dkLen);
 		} catch (GeneralSecurityException e) {
 			e.printStackTrace();
 		}
@@ -429,9 +434,10 @@ public class Identity implements Parcelable {
 		final byte[] importMixKey = Crypto.xor(exportedIdentity.getMasterkey(),
 				importScryptResult);
 
-		return new Identity(name, importMixKey, salt, importVerifier,
-				scryptParameterN, scryptParameterR, scryptParameterP,
-				scryptParameterDkLen);
+		return new Identity(name, importMixKey, importPasswordSalt,
+				importVerifier, SCRYPT_NORMAL_PARAMETERS_N,
+				SCRYPT_NORMAL_PARAMETERS_r, SCRYPT_NORMAL_PARAMETERS_p,
+				SCRYPT_NORMAL_PARAMETERS_dkLen);
 	}
 
 	@Override
