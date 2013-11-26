@@ -11,6 +11,9 @@ import java.util.List;
 
 import de.bwravencl.androsqrl.R;
 
+import de.bwravencl.androsqrl.exception.DuplicateIdentityNameException;
+import de.bwravencl.androsqrl.exception.InvalidImportString;
+import de.bwravencl.androsqrl.exception.WrongPasswordException;
 import de.bwravencl.androsqrl.model.Identity;
 import eu.livotov.zxscan.ZXScanHelper;
 
@@ -733,23 +736,82 @@ public class MainActivity extends Activity {
 													});
 									alertDialog.show();
 								} else {
-									try {
-										final Identity importIdentity = Identity
-												.getIdentityFromString(name,
-														importString);
-										importIdentity.save(MainActivity.this);
+									final View identityViewPassword = factory
+											.inflate(
+													R.layout.alert_dialog_password,
+													null);
+									final EditText editTextPasswordAlert = (EditText) identityViewPassword
+											.findViewById(R.id.editTextPasswordAlert);
+									final AlertDialog.Builder builderPassword = new AlertDialog.Builder(
+											MainActivity.this);
+									builderPassword
+											.setMessage(
+													"Please enter the password of the identity to import:")
+											.setCancelable(true)
+											.setView(identityViewPassword)
+											.setPositiveButton(
+													getString(android.R.string.ok),
+													new DialogInterface.OnClickListener() {
 
-										Toast.makeText(MainActivity.this,
-												"Identity has been imported!",
-												Toast.LENGTH_LONG).show();
-									} catch (Exception e) {
-										e.printStackTrace();
+														@Override
+														public void onClick(
+																DialogInterface dialog,
+																int which) {
+															final String password = editTextPasswordAlert
+																	.getText()
+																	.toString();
 
-										Toast.makeText(MainActivity.this,
-												"Error: Import unsucessful!",
-												Toast.LENGTH_LONG).show();
-									}
-									restartActivity();
+															Identity importIdentity;
+															try {
+																importIdentity = Identity
+																		.getIdentityFromString(
+																				name,
+																				password,
+																				importString);
+
+																importIdentity
+																		.save(MainActivity.this);
+
+																Toast.makeText(
+																		MainActivity.this,
+																		"Identity has been imported!",
+																		Toast.LENGTH_LONG)
+																		.show();
+															} catch (InvalidImportString e) {
+																e.printStackTrace();
+
+																Toast.makeText(
+																		MainActivity.this,
+																		"Import unsucessful:\nThe QR-Code does not encode an identity!",
+																		Toast.LENGTH_LONG)
+																		.show();
+															} catch (WrongPasswordException e) {
+																e.printStackTrace();
+
+																Toast.makeText(
+																		MainActivity.this,
+																		"Import unsucessful:\nYou entered a wrong password!",
+																		Toast.LENGTH_LONG)
+																		.show();
+															} catch (DuplicateIdentityNameException e) {
+																e.printStackTrace();
+															}
+
+															restartActivity();
+														}
+													})
+											.setNegativeButton(
+													getString(android.R.string.cancel),
+													new DialogInterface.OnClickListener() {
+
+														@Override
+														public void onClick(
+																DialogInterface dialog,
+																int which) {
+															dialog.dismiss();
+														}
+													});
+									builderPassword.show();
 								}
 							}
 						})

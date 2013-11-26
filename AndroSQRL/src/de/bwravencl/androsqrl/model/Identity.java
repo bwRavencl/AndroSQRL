@@ -7,6 +7,10 @@ import java.util.Set;
 
 import com.lambdaworks.crypto.SCrypt;
 
+import de.bwravencl.androsqrl.exception.DuplicateIdentityNameException;
+import de.bwravencl.androsqrl.exception.IdentityNotFoundException;
+import de.bwravencl.androsqrl.exception.InvalidImportString;
+import de.bwravencl.androsqrl.exception.WrongPasswordException;
 import de.bwravencl.androsqrl.utils.Crypto;
 
 import android.content.Context;
@@ -181,14 +185,15 @@ public class Identity implements Parcelable {
 	}
 
 	// Load from storage
-	public static Identity load(Context context, String name) throws Exception {
+	public static Identity load(Context context, String name)
+			throws IdentityNotFoundException {
 		final SharedPreferences sharedPreferences = getSharedPreferences(context);
 
 		final Set<String> identityNames = sharedPreferences.getStringSet(
 				PREFERENCES_IDENTITY_NAMES, null);
 
 		if (identityNames == null || !identityNames.contains(name))
-			throw new Exception("Identity with name='" + name + "' not found");
+			throw new IdentityNotFoundException(name);
 
 		byte[] mixkey = Base64.decode(
 				sharedPreferences.getString(PREFERENCES_IDENTITY_MIXKEY + "_"
@@ -219,7 +224,7 @@ public class Identity implements Parcelable {
 	}
 
 	public static void deleteIdentity(Context context, String name)
-			throws Exception {
+			throws IdentityNotFoundException {
 		final SharedPreferences sharedPreferences = getSharedPreferences(context);
 		final Editor editor = sharedPreferences.edit();
 
@@ -227,7 +232,7 @@ public class Identity implements Parcelable {
 				PREFERENCES_IDENTITY_NAMES, new HashSet<String>());
 
 		if (identityNames == null || !identityNames.contains(name))
-			throw new Exception("Identity with name='" + name + "' not found");
+			throw new IdentityNotFoundException(name);
 
 		identityNames.remove(name);
 		editor.putStringSet(PREFERENCES_IDENTITY_NAMES, identityNames);
@@ -248,7 +253,7 @@ public class Identity implements Parcelable {
 	}
 
 	public static void renameIdentity(Context context, String oldName,
-			String newName) throws Exception {
+			String newName) throws IdentityNotFoundException {
 		final SharedPreferences sharedPreferences = getSharedPreferences(context);
 		final Editor editor = sharedPreferences.edit();
 
@@ -256,12 +261,10 @@ public class Identity implements Parcelable {
 				PREFERENCES_IDENTITY_NAMES, new HashSet<String>());
 
 		if (identityNames == null || !identityNames.contains(oldName))
-			throw new Exception("Identity with name='" + oldName
-					+ "' not found");
+			throw new IdentityNotFoundException(oldName);
 
 		if (identityNames.contains(newName))
-			throw new Exception("Identity with name='" + newName
-					+ "' already existing");
+			throw new IdentityNotFoundException(newName);
 
 		identityNames.remove(oldName);
 		identityNames.add(newName);
@@ -317,7 +320,7 @@ public class Identity implements Parcelable {
 	}
 
 	// Saves a newly created identity to storage
-	public void save(Context context) throws Exception {
+	public void save(Context context) throws DuplicateIdentityNameException {
 		final SharedPreferences sharedPreferences = getSharedPreferences(context);
 		final Editor editor = sharedPreferences.edit();
 
@@ -325,8 +328,7 @@ public class Identity implements Parcelable {
 				PREFERENCES_IDENTITY_NAMES, new HashSet<String>());
 
 		if (identityNames.contains(name))
-			throw new Exception("Identity with name='" + name
-					+ "' already existing");
+			throw new DuplicateIdentityNameException(name);
 
 		identityNames.add(name);
 		editor.putStringSet(PREFERENCES_IDENTITY_NAMES, identityNames);
@@ -384,12 +386,14 @@ public class Identity implements Parcelable {
 			return null;
 	}
 
-	public static Identity getIdentityFromString(String name,
-			String importString) throws Exception {
+	public static Identity getIdentityFromString(String name, String password,
+			String importString) throws InvalidImportString,
+			WrongPasswordException {
 		final String[] strings = importString.split(" ");
 
+		// Basic validity check
 		if (strings.length != 7)
-			throw new Exception("Invalid String");
+			throw new InvalidImportString(importString);
 
 		final byte[] mixkey = Base64.decode(strings[0], Base64.DEFAULT);
 		final byte[] salt = Base64.decode(strings[1], Base64.DEFAULT);
@@ -399,8 +403,35 @@ public class Identity implements Parcelable {
 		final int scryptParameterP = Integer.parseInt(strings[5]);
 		final int scryptParameterDkLen = Integer.parseInt(strings[6]);
 
-		return new Identity(name, mixkey, salt, verifier, scryptParameterN,
-				scryptParameterR, scryptParameterP, scryptParameterDkLen);
+		// Some more simple validity checks
+		if (mixkey == null || salt == null || verifier == null
+				|| scryptParameterN % 2 != 0)
+			throw new InvalidImportString(importString);
+
+		final Identity exportedIdentity = new Identity(name, mixkey, salt,
+				verifier, scryptParameterN, scryptParameterR, scryptParameterP,
+				scryptParameterDkLen);
+		if (!exportedIdentity.deriveMasterKey(password))
+			throw new WrongPasswordException();
+
+		// Convert from export to normal scrypt parameters:
+		byte[] importScryptResult = {};
+		try {
+			importScryptResult = SCrypt.scrypt(password.getBytes(), salt,
+					SCRYPT_NORMAL_PARAMETERS_N, SCRYPT_NORMAL_PARAMETERS_r,
+					SCRYPT_NORMAL_PARAMETERS_p, SCRYPT_NORMAL_PARAMETERS_dkLen);
+		} catch (GeneralSecurityException e) {
+			e.printStackTrace();
+		}
+
+		final byte[] importVerifier = Crypto.sha256(importScryptResult);
+
+		final byte[] importMixKey = Crypto.xor(exportedIdentity.getMasterkey(),
+				importScryptResult);
+
+		return new Identity(name, importMixKey, salt, importVerifier,
+				scryptParameterN, scryptParameterR, scryptParameterP,
+				scryptParameterDkLen);
 	}
 
 	@Override
