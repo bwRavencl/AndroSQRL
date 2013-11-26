@@ -395,47 +395,47 @@ public class Identity implements Parcelable {
 		if (strings.length != 7)
 			throw new InvalidImportString(importString);
 
-		final byte[] mixkey = Base64.decode(strings[0], Base64.DEFAULT);
-		final byte[] salt = Base64.decode(strings[1], Base64.DEFAULT);
-		final byte[] verifier = Base64.decode(strings[2], Base64.DEFAULT);
-		final int scryptParameterN = Integer.parseInt(strings[3]);
-		final int scryptParameterR = Integer.parseInt(strings[4]);
-		final int scryptParameterP = Integer.parseInt(strings[5]);
-		final int scryptParameterDkLen = Integer.parseInt(strings[6]);
+		final byte[] importedMixKey = Base64.decode(strings[0], Base64.DEFAULT);
+		final byte[] importedSalt = Base64.decode(strings[1], Base64.DEFAULT);
+		final byte[] importedVerifier = Base64.decode(strings[2], Base64.DEFAULT);
+		final int importedScryptParameterN = Integer.parseInt(strings[3]);
+		final int importedScryptParameterR = Integer.parseInt(strings[4]);
+		final int importedScryptParameterP = Integer.parseInt(strings[5]);
+		final int importedScryptParameterDkLen = Integer.parseInt(strings[6]);
 
 		// Some more simple validity checks
-		if (mixkey == null || salt == null || verifier == null
-				|| scryptParameterN % 2 != 0)
+		if (importedMixKey == null || importedSalt == null || importedVerifier == null
+				|| importedScryptParameterN % 2 != 0)
 			throw new InvalidImportString(importString);
 
-		final Identity exportedIdentity = new Identity(name, mixkey, salt,
-				verifier, scryptParameterN, scryptParameterR, scryptParameterP,
-				scryptParameterDkLen);
+		final Identity importedIdentity = new Identity(name, importedMixKey, importedSalt,
+				importedVerifier, importedScryptParameterN, importedScryptParameterR, importedScryptParameterP,
+				importedScryptParameterDkLen);
 
-		if (!exportedIdentity.deriveMasterKey(password))
+		if (!importedIdentity.deriveMasterKey(password))
 			throw new WrongPasswordException();
 
 		// Convert from export to normal scrypt parameters:
 		final byte[] salt256 = Crypto.sha256(Crypto.makeRandom(30));
-		final byte[] importPasswordSalt = Crypto.subByte(salt256, 0, 8);
+		final byte[] newPasswordSalt = Crypto.subByte(salt256, 0, 8);
 
-		byte[] importScryptResult = {};
+		byte[] newScryptResult = {};
 		try {
-			importScryptResult = SCrypt.scrypt(password.getBytes(),
-					importPasswordSalt, SCRYPT_NORMAL_PARAMETERS_N,
+			newScryptResult = SCrypt.scrypt(password.getBytes(),
+					newPasswordSalt, SCRYPT_NORMAL_PARAMETERS_N,
 					SCRYPT_NORMAL_PARAMETERS_r, SCRYPT_NORMAL_PARAMETERS_p,
 					SCRYPT_NORMAL_PARAMETERS_dkLen);
 		} catch (GeneralSecurityException e) {
 			e.printStackTrace();
 		}
 
-		final byte[] importVerifier = Crypto.sha256(importScryptResult);
+		final byte[] newVerifier = Crypto.sha256(newScryptResult);
 
-		final byte[] importMixKey = Crypto.xor(exportedIdentity.getMasterkey(),
-				importScryptResult);
+		final byte[] newMixKey = Crypto.xor(importedIdentity.getMasterkey(),
+				newScryptResult);
 
-		return new Identity(name, importMixKey, importPasswordSalt,
-				importVerifier, SCRYPT_NORMAL_PARAMETERS_N,
+		return new Identity(name, newMixKey, newPasswordSalt,
+				newVerifier, SCRYPT_NORMAL_PARAMETERS_N,
 				SCRYPT_NORMAL_PARAMETERS_r, SCRYPT_NORMAL_PARAMETERS_p,
 				SCRYPT_NORMAL_PARAMETERS_dkLen);
 	}
