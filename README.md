@@ -1,8 +1,6 @@
 ![AndroSQRL Logo](https://github.com/bwRavencl/AndroSQRL/raw/master/AndroSQRL/res/drawable-hdpi/ic_launcher.png 
 "AndroSQRL")
-
-#AndroSQRL
-=========
+##AndroSQRL
 
 The AndroSQRL project aims to create an user-friendly, open-source SQRL-Client for Android 
 devices.  
