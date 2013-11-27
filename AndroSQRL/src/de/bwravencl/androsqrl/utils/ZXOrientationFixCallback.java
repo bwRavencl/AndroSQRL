@@ -51,6 +51,6 @@ public class ZXOrientationFixCallback implements ZXUserCallback {
 
 	@Override
 	public boolean onCodeRead(String code) {
-		return false;
+		return true;
 	}
 }
