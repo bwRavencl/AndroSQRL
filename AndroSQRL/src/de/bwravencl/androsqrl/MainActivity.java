@@ -29,6 +29,7 @@ import de.bwravencl.androsqrl.exception.DuplicateIdentityNameException;
 import de.bwravencl.androsqrl.exception.InvalidImportString;
 import de.bwravencl.androsqrl.exception.WrongPasswordException;
 import de.bwravencl.androsqrl.model.Identity;
+import de.bwravencl.androsqrl.utils.ZXOrientationFixCallback;
 import eu.livotov.zxscan.ZXScanHelper;
 
 import android.app.Activity;
@@ -706,6 +707,8 @@ public class MainActivity extends Activity {
 		final SharedPreferences sharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 
+		ZXScanHelper.setUserCallback(new ZXOrientationFixCallback());
+		ZXScanHelper.setBlockCameraRotation(false);
 		ZXScanHelper.setPlaySoundOnRead(sharedPreferences.getBoolean(
 				"pref_title_scanner_beep", true));
 		ZXScanHelper.setVibrateOnRead(sharedPreferences.getBoolean(

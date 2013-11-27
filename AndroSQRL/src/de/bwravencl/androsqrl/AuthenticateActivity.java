@@ -30,10 +30,12 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 
 import com.github.dazoe.android.Ed25519;
+
 import de.bwravencl.androsqrl.R;
 
 import de.bwravencl.androsqrl.model.Identity;
 import de.bwravencl.androsqrl.model.AuthRequest;
+import de.bwravencl.androsqrl.utils.ZXOrientationFixCallback;
 import eu.livotov.zxscan.ZXScanHelper;
 
 import android.os.AsyncTask;
@@ -104,6 +106,8 @@ public class AuthenticateActivity extends Activity {
 			final SharedPreferences sharedPreferences = PreferenceManager
 					.getDefaultSharedPreferences(this);
 
+			ZXScanHelper.setUserCallback(new ZXOrientationFixCallback());
+			ZXScanHelper.setBlockCameraRotation(false);
 			ZXScanHelper.setPlaySoundOnRead(sharedPreferences.getBoolean(
 					"pref_title_scanner_beep", true));
 			ZXScanHelper.setVibrateOnRead(sharedPreferences.getBoolean(
