@@ -24,9 +24,10 @@ import eu.livotov.zxscan.ZXUserCallback;
 
 public class ZXOrientationFixCallback implements ZXUserCallback {
 
-	public static final long WAIT_TIME = 150L; // TODO: make sure that this
-												// value is large enough for
-												// slower devices
+	public static final long DELAY = 50L;
+	public static final long PERIOD = 150L;
+
+	private Timer timer;
 
 	@Override
 	public void onScannerActivityResumed(final Activity captureActivity) {
@@ -40,11 +41,14 @@ public class ZXOrientationFixCallback implements ZXUserCallback {
 				captureActivity.onConfigurationChanged(null);
 			}
 		};
-		new Timer().schedule(timerTask, WAIT_TIME);
+		timer = new Timer();
+		timer.scheduleAtFixedRate(timerTask, DELAY, PERIOD);
 	}
 
 	@Override
 	public void onScannerActivityDestroyed(Activity activity) {
+		if (timer != null)
+			timer.cancel();
 	}
 
 	@Override
@@ -53,6 +57,9 @@ public class ZXOrientationFixCallback implements ZXUserCallback {
 
 	@Override
 	public boolean onCodeRead(String code) {
+		if (timer != null)
+			timer.cancel();
+
 		return true;
 	}
 }
