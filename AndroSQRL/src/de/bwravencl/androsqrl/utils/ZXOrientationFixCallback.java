@@ -24,9 +24,9 @@ import eu.livotov.zxscan.ZXUserCallback;
 
 public class ZXOrientationFixCallback implements ZXUserCallback {
 
-	public static final long WAIT_TIME = 60L; // TODO: make sure that this value
-												// is large enough for slower
-												// devices
+	public static final long WAIT_TIME = 150L; // TODO: make sure that this
+												// value is large enough for
+												// slower devices
 
 	@Override
 	public void onScannerActivityResumed(final Activity captureActivity) {
