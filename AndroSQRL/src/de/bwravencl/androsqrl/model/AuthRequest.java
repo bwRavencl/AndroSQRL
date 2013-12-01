@@ -16,12 +16,20 @@
 
 package de.bwravencl.androsqrl.model;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import de.bwravencl.androsqrl.exception.InvalidUrlException;
+
 public class AuthRequest {
 
 	private boolean isHttps;
 	private String schemelessUrl; // contains everything except scheme
 
-	public AuthRequest(String url) {
+	public AuthRequest(String url) throws InvalidUrlException {
+		if (!isValidUrl(url))
+			throw new InvalidUrlException(url);
+
 		this.schemelessUrl = removeScheme(url);
 	}
 
@@ -65,5 +73,16 @@ public class AuthRequest {
 		}
 
 		return url;
+	}
+
+	public static final boolean isValidUrl(String url) {
+		if (url == null)
+			return false;
+
+		final Pattern pattern = Pattern
+				.compile("^?qrl://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]\\?webnonce=[-a-zA-Z0-9]*");
+		final Matcher matcher = pattern.matcher(url);
+
+		return matcher.matches();
 	}
 }

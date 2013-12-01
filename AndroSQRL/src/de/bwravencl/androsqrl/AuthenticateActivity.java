@@ -35,6 +35,7 @@ import com.github.dazoe.android.Ed25519;
 
 import de.bwravencl.androsqrl.R;
 
+import de.bwravencl.androsqrl.exception.InvalidUrlException;
 import de.bwravencl.androsqrl.model.Identity;
 import de.bwravencl.androsqrl.model.AuthRequest;
 import de.bwravencl.androsqrl.utils.ZXOrientationFixCallback;
@@ -155,11 +156,22 @@ public class AuthenticateActivity extends Activity {
 	}
 
 	private void handleURL() {
-		authRequest = new AuthRequest(url);
+		try {
+			authRequest = new AuthRequest(url);
 
-		textViewMessage.setText("Do you really want to authenticate to:\n\n"
-				+ authRequest.getDomain() + " ?");
-		buttonConfirm.setEnabled(true);
+			textViewMessage
+					.setText("Do you really want to authenticate to:\n\n"
+							+ authRequest.getDomain() + " ?");
+			buttonConfirm.setEnabled(true);
+		} catch (InvalidUrlException e) {
+			e.printStackTrace();
+
+			// Show toast multiple times to increase the duration
+			for (int i = 0; i < 2; i++)
+				Toast.makeText(this, "Invalid SQRL code!", Toast.LENGTH_LONG)
+						.show();
+			finish();
+		}
 	}
 
 	private class CreateSignatureTask extends AsyncTask<String, Void, String[]> {
