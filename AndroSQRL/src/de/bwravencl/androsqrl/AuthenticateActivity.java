@@ -18,6 +18,8 @@ package de.bwravencl.androsqrl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -99,7 +101,7 @@ public class AuthenticateActivity extends Activity {
 
 				final String url = authRequest.getSchemelessUrl();
 				if (url != null)
-					new CreateSignatureTask().execute(url);
+					new AuthenticateTask().execute(url);
 			}
 		});
 
@@ -126,6 +128,7 @@ public class AuthenticateActivity extends Activity {
 		identity.clearMasterKey();
 	}
 
+	// Finishes the Activity after 'duration' ms
 	private void startFinishingTimer(long duration) {
 		// Show toast multiple times to increase the duration
 		for (int i = 0; i < 2; i++)
@@ -155,6 +158,8 @@ public class AuthenticateActivity extends Activity {
 		}
 	}
 
+	// Called once we have an URL to work with, either by Extra or by the
+	// Scanner Activity
 	private void handleURL() {
 		try {
 			authRequest = new AuthRequest(url);
@@ -174,12 +179,13 @@ public class AuthenticateActivity extends Activity {
 		}
 	}
 
-	private class CreateSignatureTask extends AsyncTask<String, Void, String[]> {
+	// AsyncTask to perform the actual authentication
+	private class AuthenticateTask extends AsyncTask<String, Void, String[]> {
 		@Override
 		protected String[] doInBackground(String... params) {
 			final String url = params[0];
 
-			final byte[] privateKey = createPrivateKey(authRequest.getDomain(),
+			final byte[] privateKey = getPrivateKey(authRequest.getDomain(),
 					identity.getMasterkey());
 
 			byte[] publicKey = null;
@@ -208,108 +214,114 @@ public class AuthenticateActivity extends Activity {
 			postData(authRequest.getReturnUrl(),
 					authRequest.getSchemelessUrl(), signature, publicKey);
 		}
-	}
 
-	// Create the private key from URL and secret key
-	public static byte[] createPrivateKey(String domain, byte[] key) {
-		byte[] hmac = null;
+		// Create the private key from URL and secret key
+		private byte[] getPrivateKey(String domain, byte[] key) {
+			byte[] privateKey = null;
 
-		try {
-			SecretKeySpec pKey = new SecretKeySpec(key, "HmacSHA256");
-			Mac mac = Mac.getInstance("HmacSHA256");
-			mac.init(pKey);
-			hmac = mac.doFinal(domain.getBytes());
-		} catch (Exception e) {
-			e.printStackTrace();
+			try {
+				final SecretKeySpec secretKeySpec = new SecretKeySpec(key,
+						"HmacSHA256");
+				final Mac mac = Mac.getInstance("HmacSHA256");
+				mac.init(secretKeySpec);
+				privateKey = mac.doFinal(domain.getBytes());
+			} catch (InvalidKeyException e) {
+				e.printStackTrace();
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
+
+			return privateKey;
 		}
 
-		return hmac;
-	}
+		// Send signature and pubkey to server
+		private void postData(String url, String message, String signature,
+				String publicKey) {
+			final HttpPost httppost = new HttpPost(url);
 
-	// Send signature and pubkey to server
-	private void postData(String url, String message, String signature,
-			String publicKey) {
-		final HttpPost httppost = new HttpPost(url);
+			try {
+				// Add data to post
+				final List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+						2);
+				nameValuePairs.add(new BasicNameValuePair("message", message));
+				nameValuePairs.add(new BasicNameValuePair("signature",
+						signature));
+				nameValuePairs.add(new BasicNameValuePair("publicKey",
+						publicKey));
 
-		try {
-			// Add data to post
-			final List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
-					2);
-			nameValuePairs.add(new BasicNameValuePair("message", message));
-			nameValuePairs.add(new BasicNameValuePair("signature", signature));
-			nameValuePairs.add(new BasicNameValuePair("publicKey", publicKey));
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				final HttpThread httpThread = new HttpThread(httppost);
+				httpThread.start();
+				synchronized (httpThread) {
+					try {
+						httpThread.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					final HttpResponse response = httpThread.getResponse();
 
-			final HttpThread httpThread = new HttpThread(httppost);
-			httpThread.start();
-			synchronized (httpThread) {
-				try {
-					httpThread.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				final HttpResponse response = httpThread.getResponse();
+					int status = response.getStatusLine().getStatusCode();
 
-				int status = response.getStatusLine().getStatusCode();
+					if (status == HttpStatus.SC_OK) {
+						ByteArrayOutputStream ostream = new ByteArrayOutputStream();
+						response.getEntity().writeTo(ostream);
 
-				if (status == HttpStatus.SC_OK) {
-					ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-					response.getEntity().writeTo(ostream);
-
-					String out = ostream.toString();
-					// See if the page returned "Verified"
-					if (out.contains("Verified")) {
-						textViewMessage.setText("Authentication successful!");
-						textViewMessage.setTextColor(getResources().getColor(
-								R.color.DKGREEN));
-						startFinishingTimer(10000L);
+						String out = ostream.toString();
+						// See if the page returned "Verified"
+						if (out.contains("Verified")) {
+							textViewMessage
+									.setText("Authentication successful!");
+							textViewMessage.setTextColor(getResources()
+									.getColor(R.color.DKGREEN));
+							startFinishingTimer(10000L);
+						} else {
+							textViewMessage
+									.setText("Authentication unsuccessful!\n\nDetails:\n\n"
+											+ out);
+							textViewMessage.setTextColor(getResources()
+									.getColor(R.color.DKRED));
+						}
 					} else {
 						textViewMessage
-								.setText("Authentication unsuccessful!\n\nDetails:\n\n"
-										+ out);
-						textViewMessage.setTextColor(getResources().getColor(
-								R.color.DKRED));
+								.setText("There has been a problem contating the server.");
+						textViewMessage.setTextColor(Color.RED);
 					}
-				} else {
-					textViewMessage
-							.setText("There has been a problem contating the server.");
-					textViewMessage.setTextColor(Color.RED);
+				}
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private class HttpThread extends Thread {
+
+			private final HttpClient httpClient = new DefaultHttpClient();
+			private HttpPost httpPost;
+			private HttpResponse httpResponse;
+
+			public HttpThread(HttpPost httpPost) {
+				this.httpPost = httpPost;
+			}
+
+			@Override
+			public void run() {
+				synchronized (this) {
+					try {
+						httpResponse = httpClient.execute(httpPost);
+						notify();
+					} catch (ClientProtocolException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+
+			public HttpResponse getResponse() {
+				return httpResponse;
+			}
+		};
 	}
-
-	private class HttpThread extends Thread {
-
-		private final HttpClient httpClient = new DefaultHttpClient();
-		private HttpPost httpPost;
-		private HttpResponse httpResponse;
-
-		public HttpThread(HttpPost httpPost) {
-			this.httpPost = httpPost;
-		}
-
-		@Override
-		public void run() {
-			synchronized (this) {
-				try {
-					httpResponse = httpClient.execute(httpPost);
-					notify();
-				} catch (ClientProtocolException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		public HttpResponse getResponse() {
-			return httpResponse;
-		}
-	};
 }
